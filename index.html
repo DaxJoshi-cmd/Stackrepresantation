@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Stack Visualizer</title>
+    <style>
+        /* CSS: This defines how the app looks */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #1a1a1a;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        h1 { margin-top: 20px; }
+
+        .container {
+            display: flex;
+            gap: 50px;
+            margin-top: 30px;
+            align-items: flex-end;
+        }
+
+        /* The Control Panel (Buttons and Inputs) */
+        .controls {
+            background-color: #333;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            width: 250px;
+        }
+
+        input {
+            padding: 10px;
+            border-radius: 5px;
+            border: none;
+            font-size: 16px;
+        }
+
+        button {
+            padding: 10px;
+            font-size: 16px;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            transition: background 0.3s;
+            font-weight: bold;
+        }
+
+        .btn-push { background-color: #4CAF50; color: white; } /* Green */
+        .btn-push:hover { background-color: #45a049; }
+
+        .btn-pop { background-color: #f44336; color: white; } /* Red */
+        .btn-pop:hover { background-color: #d32f2f; }
+
+        .btn-peek { background-color: #2196F3; color: white; } /* Blue */
+        .btn-peek:hover { background-color: #1976D2; }
+
+        .message-box {
+            margin-top: 10px;
+            padding: 10px;
+            background: #222;
+            border-left: 5px solid #4CAF50;
+            font-size: 14px;
+            min-height: 20px;
+        }
+
+        /* The Visual Stack Container */
+        .stack-container {
+            width: 150px;
+            height: 400px;
+            border-left: 4px solid #fff;
+            border-right: 4px solid #fff;
+            border-bottom: 4px solid #fff;
+            border-radius: 0 0 10px 10px;
+            display: flex;
+            flex-direction: column-reverse; /* Items stack from bottom up */
+            justify-content: flex-start;
+            padding: 10px;
+            background-color: rgba(255, 255, 255, 0.05);
+            position: relative;
+        }
+
+        /* Individual Stack Items (The Blocks) */
+        .stack-item {
+            height: 50px;
+            width: 100%;
+            background-color: #FF9800; /* Orange blocks */
+            color: black;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+            font-size: 20px;
+            margin-bottom: 5px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+            animation: dropIn 0.3s ease-out; /* Animation effect */
+        }
+
+        .highlight {
+            background-color: #FFFF00 !important; /* Yellow for Peek */
+            transform: scale(1.05);
+            transition: 0.2s;
+        }
+
+        /* Animation for pushing */
+        @keyframes dropIn {
+            0% { transform: translateY(-50px); opacity: 0; }
+            100% { transform: translateY(0); opacity: 1; }
+        }
+        
+        /* Label for SIZE LIMIT */
+        .limit-label {
+            position: absolute;
+            top: -25px;
+            width: 100%;
+            text-align: center;
+            font-size: 12px;
+            color: #aaa;
+        }
+
+    </style>
+</head>
+<body>
+
+    <h1>Stack Visualizer</h1>
+
+    <div class="container">
+        <div class="controls">
+            <h3>Operations</h3>
+            <input type="number" id="inputVal" placeholder="Enter number..." />
+            
+            <button class="btn-push" onclick="push()">Push</button>
+            <button class="btn-pop" onclick="pop()">Pop</button>
+            <button class="btn-peek" onclick="peek()">Peek</button>
+            <button onclick="clearStack()" style="background:#555; color:white;">Clear All</button>
+
+            <div class="message-box" id="msgBox">Ready...</div>
+        </div>
+
+        <div class="stack-visual">
+            <div class="limit-label">Max Size: 7</div>
+            <div class="stack-container" id="stackBox">
+                </div>
+        </div>
+    </div>
+
+    <script>
+        // JAVASCRIPT: This is the logic (Same as your C code but for Web)
+        
+        // Configuration
+        const MAX_SIZE = 7; // Equivalent to #define SIZE 7
+        const stackBox = document.getElementById('stackBox');
+        const inputVal = document.getElementById('inputVal');
+        const msgBox = document.getElementById('msgBox');
+
+        // Helper to update the message box (like printf)
+        function log(message, color = '#4CAF50') {
+            msgBox.innerText = message;
+            msgBox.style.borderLeftColor = color;
+        }
+
+        // PUSH Function
+        function push() {
+            const val = inputVal.value;
+
+            // 1. Check Overflow
+            if (stackBox.childElementCount >= MAX_SIZE) {
+                log("Stack Overflow! (Stack is full)", "#f44336");
+                return;
+            }
+
+            // 2. Validate Input
+            if (val === "") {
+                log("Please enter a number first!", "#FF9800");
+                return;
+            }
+
+            // 3. Create the visual block (The HTML element)
+            const newBlock = document.createElement('div');
+            newBlock.classList.add('stack-item');
+            newBlock.innerText = val;
+
+            // 4. Add to stack
+            stackBox.appendChild(newBlock);
+            
+            log(`Pushed ${val} to stack.`);
+            inputVal.value = ""; // Clear input
+            inputVal.focus();
+        }
+
+        // POP Function
+        function pop() {
+            // 1. Check Underflow
+            if (stackBox.childElementCount === 0) {
+                log("Stack Underflow! (Stack is empty)", "#f44336");
+                return;
+            }
+
+            // 2. Remove the top element (Last child in HTML logic)
+            const topBlock = stackBox.lastElementChild;
+            const value = topBlock.innerText;
+
+            stackBox.removeChild(topBlock);
+            log(`Popped ${value} from stack.`);
+        }
+
+        // PEEK Function
+        function peek() {
+             if (stackBox.childElementCount === 0) {
+                log("Stack is empty.", "#f44336");
+                return;
+            }
+
+            const topBlock = stackBox.lastElementChild;
+            const value = topBlock.innerText;
+            
+            // Highlight animation
+            topBlock.classList.add('highlight');
+            setTimeout(() => {
+                topBlock.classList.remove('highlight');
+            }, 500); // Remove highlight after 0.5 seconds
+
+            log(`Top element is ${value}.`, "#2196F3");
+        }
+        
+        // Clear Function
+        function clearStack() {
+            stackBox.innerHTML = '';
+            log("Stack cleared.");
+        }
+    </script>
+
+</body>
+</html>
